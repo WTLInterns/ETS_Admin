@@ -14,50 +14,57 @@ const Drivers = () => {
 
   useEffect(() => {
     fetchDrivers();
-  }, []);
+  }, [showBlocked]); // Add showBlocked as dependency to refetch when toggling
 
   const fetchDrivers = async () => {
     try {
       setIsLoading(true);
-      const response = await axios.get('http://localhost:8080/getDrivers', {
-        withCredentials: true,
-        headers: { 'Content-Type': 'application/json' }
-      });
-  
-      // Log response data
-      console.log('Name:', response?.data.data[0].name);  
-      const allDrivers = Array.isArray(response.data) ? response.data : response.data.data || [];
+      const response = await axios.get(
+        showBlocked 
+          ? 'http://localhost:8080/getBlockDrivers'
+          : 'http://localhost:8080/getDrivers'
+      );
       
+      const { success, data, message } = response.data;
       
-      // Ensure we have an array before filtering
-      if (Array.isArray(allDrivers)) {
-        const active = allDrivers.filter(driver => !driver.isBlocked);
-        const blocked = allDrivers.filter(driver => driver.isBlocked);
-        
-        setActiveDrivers(active);
-        setBlockedDrivers(blocked);
+      if (success) {
+        if (showBlocked) {
+          setBlockedDrivers(data || []);
+          setActiveDrivers([]); // Clear active drivers when showing blocked
+        } else {
+          // For active drivers, filter out any blacklisted ones
+          const active = (data || []).filter(driver => !driver.black_list);
+          setActiveDrivers(active);
+          setBlockedDrivers([]); // Clear blocked drivers when showing active
+        }
         setError(null);
       } else {
-        throw new Error('Invalid data format received from server');
+        throw new Error(message || 'Failed to fetch drivers');
       }
     } catch (err) {
       setError('Failed to fetch drivers. Please try again later.');
-      console.error('Error fetching drivers:', err.response || err);
+      console.error('Error fetching drivers:', err);
+      if (showBlocked) {
+        setBlockedDrivers([]);
+      } else {
+        setActiveDrivers([]);
+      }
     } finally {
       setIsLoading(false);
     }
   };
-  
 
-  // Filtered list based on search and view with null checks
-  const drivers = (showBlocked ? blockedDrivers : activeDrivers).filter(driver => {
+  // Update the filtered list to match backend field names
+  const drivers = showBlocked ? blockedDrivers : activeDrivers;
+  
+  const filteredDrivers = drivers.filter(driver => {
     if (!driver) return false;
     if (!searchQuery) return true;
     
     const searchLower = searchQuery.toLowerCase();
-    const name = String(driver?.driverName || '').toLowerCase();
-    const mobile = String(driver?.mobileNumber || '');
-    const license = String(driver?.licenseId || '').toLowerCase();
+    const name = String(driver?.name || '').toLowerCase();
+    const mobile = String(driver?.mobile || '');
+    const license = String(driver?.license_id_number || '').toLowerCase();
     
     return name.includes(searchLower) || 
            mobile.includes(searchQuery) || 
@@ -155,21 +162,21 @@ const Drivers = () => {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {drivers.length === 0 ? (
-                    <tr key="no-data">
+                    <tr>
                       <td colSpan="8" className="px-6 py-4 text-center text-gray-500">
                         No drivers found
                       </td>
                     </tr>
                   ) : (
                     drivers.map((driver, index) => (
-                      <tr key={driver.id || `driver-${index}`} className="hover:bg-gray-50">
+                      <tr key={driver._id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{index + 1}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{driver.driverName}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{driver.mobileNumber}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{driver.dateOfBirth}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{driver.licenseId}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{driver.licenseExpiryDate}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{driver.idProofType}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{driver.name}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{driver.mobile}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{driver.data_of_birth}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{driver.license_id_number}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{driver.license_expire_date}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{driver.select_id_proof}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
                           <div className="flex gap-2">
                             <button
@@ -223,8 +230,8 @@ const Drivers = () => {
                       </label>
                       <input
                         type="text"
-                        value={editingDriver?.driverName || ''}
-                        onChange={(e) => setEditingDriver({ ...editingDriver, driverName: e.target.value })}
+                        value={editingDriver?.name || ''}
+                        onChange={(e) => setEditingDriver({ ...editingDriver, name: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -234,8 +241,8 @@ const Drivers = () => {
                       </label>
                       <input
                         type="tel"
-                        value={editingDriver?.mobileNumber || ''}
-                        onChange={(e) => setEditingDriver({ ...editingDriver, mobileNumber: e.target.value })}
+                        value={editingDriver?.mobile || ''}
+                        onChange={(e) => setEditingDriver({ ...editingDriver, mobile: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -245,8 +252,8 @@ const Drivers = () => {
                       </label>
                       <input
                         type="date"
-                        value={editingDriver?.dateOfBirth || ''}
-                        onChange={(e) => setEditingDriver({ ...editingDriver, dateOfBirth: e.target.value })}
+                        value={editingDriver?.data_of_birth || ''}
+                        onChange={(e) => setEditingDriver({ ...editingDriver, data_of_birth: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -256,8 +263,8 @@ const Drivers = () => {
                       </label>
                       <input
                         type="text"
-                        value={editingDriver?.licenseId || ''}
-                        onChange={(e) => setEditingDriver({ ...editingDriver, licenseId: e.target.value })}
+                        value={editingDriver?.license_id_number || ''}
+                        onChange={(e) => setEditingDriver({ ...editingDriver, license_id_number: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -267,8 +274,8 @@ const Drivers = () => {
                       </label>
                       <input
                         type="date"
-                        value={editingDriver?.licenseExpiryDate || ''}
-                        onChange={(e) => setEditingDriver({ ...editingDriver, licenseExpiryDate: e.target.value })}
+                        value={editingDriver?.license_expire_date || ''}
+                        onChange={(e) => setEditingDriver({ ...editingDriver, license_expire_date: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -277,8 +284,8 @@ const Drivers = () => {
                         ID Proof Type
                       </label>
                       <select
-                        value={editingDriver?.idProofType || ''}
-                        onChange={(e) => setEditingDriver({ ...editingDriver, idProofType: e.target.value })}
+                        value={editingDriver?.select_id_proof || ''}
+                        onChange={(e) => setEditingDriver({ ...editingDriver, select_id_proof: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
                         <option value="">Select ID Proof</option>

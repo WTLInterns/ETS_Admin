@@ -3,18 +3,14 @@ import { FaTimes } from 'react-icons/fa';
 
 const AddVehicles = () => {
   const [vehicleData, setVehicleData] = useState({
-    vehicleNumber: '',
-    vehicleCategory: '',
+    vehicle_number: '',
+    vehicle_category: '',
     brand: '',
-    modelType: '',
-    fuelType: '',
-    vehicleOwnership: '',
-    registrationDate: '',
-    insuranceValidTo: '',
-    insuranceCopy: null,
-    registrationCertificateFront: null,
-    registrationCertificateBack: null,
-    vehiclePhoto: null
+    model_type: '',
+    fuel_type: '',
+    vehicle_ownership: '',
+    registration_date: '',
+    insurance_valid: '',
   });
 
   const [showSuccess, setShowSuccess] = useState(false);
@@ -24,19 +20,13 @@ const AddVehicles = () => {
     const newErrors = {};
     
     // Basic validations
-    if (!vehicleData.vehicleNumber) newErrors.vehicleNumber = 'Vehicle number is required';
-    if (!vehicleData.vehicleCategory) newErrors.vehicleCategory = 'Vehicle category is required';
+    if (!vehicleData.vehicle_number) newErrors.vehicle_number = 'Vehicle number is required';
+    if (!vehicleData.vehicle_category) newErrors.vehicle_category = 'Vehicle category is required';
     if (!vehicleData.brand) newErrors.brand = 'Brand is required';
-    if (!vehicleData.modelType) newErrors.modelType = 'Model type is required';
-    if (!vehicleData.fuelType) newErrors.fuelType = 'Fuel type is required';
-    if (!vehicleData.registrationDate) newErrors.registrationDate = 'Registration date is required';
-    if (!vehicleData.insuranceValidTo) newErrors.insuranceValidTo = 'Insurance validity date is required';
-    
-    // File validations
-    if (!vehicleData.insuranceCopy) newErrors.insuranceCopy = 'Insurance copy is required';
-    if (!vehicleData.registrationCertificateFront) newErrors.registrationCertificateFront = 'Registration certificate front is required';
-    if (!vehicleData.registrationCertificateBack) newErrors.registrationCertificateBack = 'Registration certificate back is required';
-    if (!vehicleData.vehiclePhoto) newErrors.vehiclePhoto = 'Vehicle photo is required';
+    if (!vehicleData.model_type) newErrors.model_type = 'Model type is required';
+    if (!vehicleData.fuel_type) newErrors.fuel_type = 'Fuel type is required';
+    if (!vehicleData.registration_date) newErrors.registration_date = 'Registration date is required';
+    if (!vehicleData.insurance_valid) newErrors.insurance_valid = 'Insurance validity date is required';
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -48,42 +38,28 @@ const AddVehicles = () => {
     if (!validateForm()) return;
 
     try {
-      // Create FormData object to handle file uploads
-      const formData = new FormData();
-      Object.keys(vehicleData).forEach(key => {
-        if (vehicleData[key] !== null) {
-          formData.append(key, vehicleData[key]);
-        }
-      });
-
-      // Updated API call with proper CORS configuration
       const response = await fetch('http://localhost:8080/addVehicle', {
         method: 'POST',
-        body: formData,
-        credentials: 'include',
         headers: {
-          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
-        mode: 'cors'  // Explicitly set CORS mode
+        mode: 'cors',
+        body: JSON.stringify(vehicleData)
       });
 
       if (response.ok) {
         setShowSuccess(true);
         setTimeout(() => setShowSuccess(false), 3000);
-        // Reset form
         setVehicleData({
-          vehicleNumber: '',
-          vehicleCategory: '',
+          vehicle_number: '',
+          vehicle_category: '',
           brand: '',
-          modelType: '',
-          fuelType: '',
-          vehicleOwnership: '',
-          registrationDate: '',
-          insuranceValidTo: '',
-          insuranceCopy: null,
-          registrationCertificateFront: null,
-          registrationCertificateBack: null,
-          vehiclePhoto: null
+          model_type: '',
+          fuel_type: '',
+          vehicle_ownership: '',
+          registration_date: '',
+          insurance_valid: '',
         });
       } else {
         const errorMessage = await response.text();
@@ -91,31 +67,16 @@ const AddVehicles = () => {
       }
     } catch (error) {
       console.error('Error adding vehicle:', error);
-      let errorMessage = 'Failed to add vehicle. ';
-      
-      if (error.message === 'Failed to fetch') {
-        errorMessage += 'Unable to connect to the server. Please ensure the server is running and CORS is properly configured.';
-      } else {
-        errorMessage += error.message;
-      }
-      
-      setErrors({ submit: errorMessage });
+      setErrors({ submit: 'Failed to add vehicle. Please try again.' });
     }
-};
+  };
 
   const handleChange = (e) => {
-    const { name, value, files } = e.target;
-    if (files) {
-      setVehicleData({
-        ...vehicleData,
-        [name]: files[0]
-      });
-    } else {
-      setVehicleData({
-        ...vehicleData,
-        [name]: value
-      });
-    }
+    const { name, value } = e.target;
+    setVehicleData({
+      ...vehicleData,
+      [name]: value
+    });
   };
 
   return (
@@ -142,13 +103,13 @@ const AddVehicles = () => {
             </label>
             <input
               type="text"
-              name="vehicleNumber"
-              value={vehicleData.vehicleNumber}
+              name="vehicle_number"
+              value={vehicleData.vehicle_number}
               onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            {errors.vehicleNumber && (
-              <p className="text-red-500 text-sm mt-1">{errors.vehicleNumber}</p>
+            {errors.vehicle_number && (
+              <p className="text-red-500 text-sm mt-1">{errors.vehicle_number}</p>
             )}
           </div>
 
@@ -158,13 +119,13 @@ const AddVehicles = () => {
             </label>
             <input
               type="text"
-              name="vehicleCategory"
-              value={vehicleData.vehicleCategory}
+              name="vehicle_category"
+              value={vehicleData.vehicle_category}
               onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            {errors.vehicleCategory && (
-              <p className="text-red-500 text-sm mt-1">{errors.vehicleCategory}</p>
+            {errors.vehicle_category && (
+              <p className="text-red-500 text-sm mt-1">{errors.vehicle_category}</p>
             )}
           </div>
 
@@ -190,13 +151,13 @@ const AddVehicles = () => {
             </label>
             <input
               type="text"
-              name="modelType"
-              value={vehicleData.modelType}
+              name="model_type"
+              value={vehicleData.model_type}
               onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            {errors.modelType && (
-              <p className="text-red-500 text-sm mt-1">{errors.modelType}</p>
+            {errors.model_type && (
+              <p className="text-red-500 text-sm mt-1">{errors.model_type}</p>
             )}
           </div>
 
@@ -206,13 +167,13 @@ const AddVehicles = () => {
             </label>
             <input
               type="text"
-              name="fuelType"
-              value={vehicleData.fuelType}
+              name="fuel_type"
+              value={vehicleData.fuel_type}
               onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            {errors.fuelType && (
-              <p className="text-red-500 text-sm mt-1">{errors.fuelType}</p>
+            {errors.fuel_type && (
+              <p className="text-red-500 text-sm mt-1">{errors.fuel_type}</p>
             )}
           </div>
 
@@ -222,8 +183,8 @@ const AddVehicles = () => {
             </label>
             <input
               type="text"
-              name="vehicleOwnership"
-              value={vehicleData.vehicleOwnership}
+              name="vehicle_ownership"
+              value={vehicleData.vehicle_ownership}
               onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
@@ -235,13 +196,13 @@ const AddVehicles = () => {
             </label>
             <input
               type="date"
-              name="registrationDate"
-              value={vehicleData.registrationDate}
+              name="registration_date"
+              value={vehicleData.registration_date}
               onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            {errors.registrationDate && (
-              <p className="text-red-500 text-sm mt-1">{errors.registrationDate}</p>
+            {errors.registration_date && (
+              <p className="text-red-500 text-sm mt-1">{errors.registration_date}</p>
             )}
           </div>
 
@@ -251,77 +212,13 @@ const AddVehicles = () => {
             </label>
             <input
               type="date"
-              name="insuranceValidTo"
-              value={vehicleData.insuranceValidTo}
+              name="insurance_valid"
+              value={vehicleData.insurance_valid}
               onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            {errors.insuranceValidTo && (
-              <p className="text-red-500 text-sm mt-1">{errors.insuranceValidTo}</p>
-            )}
-          </div>
-
-          <div className="form-group">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Insurance Copy (PDF):
-            </label>
-            <input
-              type="file"
-              name="insuranceCopy"
-              accept=".pdf"
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            {errors.insuranceCopy && (
-              <p className="text-red-500 text-sm mt-1">{errors.insuranceCopy}</p>
-            )}
-          </div>
-
-          <div className="form-group">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Registration Certificate Front (Image):
-            </label>
-            <input
-              type="file"
-              name="registrationCertificateFront"
-              accept="image/*"
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            {errors.registrationCertificateFront && (
-              <p className="text-red-500 text-sm mt-1">{errors.registrationCertificateFront}</p>
-            )}
-          </div>
-
-          <div className="form-group">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Registration Certificate Back (Image):
-            </label>
-            <input
-              type="file"
-              name="registrationCertificateBack"
-              accept="image/*"
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            {errors.registrationCertificateBack && (
-              <p className="text-red-500 text-sm mt-1">{errors.registrationCertificateBack}</p>
-            )}
-          </div>
-
-          <div className="form-group">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Vehicle Photo:
-            </label>
-            <input
-              type="file"
-              name="vehiclePhoto"
-              accept="image/*"
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            {errors.vehiclePhoto && (
-              <p className="text-red-500 text-sm mt-1">{errors.vehiclePhoto}</p>
+            {errors.insurance_valid && (
+              <p className="text-red-500 text-sm mt-1">{errors.insurance_valid}</p>
             )}
           </div>
 

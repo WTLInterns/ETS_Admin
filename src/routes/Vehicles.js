@@ -16,31 +16,35 @@ const Vehicles = () => {
   const fetchVehicles = async () => {
     try {
       setIsLoading(true);
-      const response = await axios.get('http://localhost:8080/getVehicles');
+      const response = await axios.get(
+        showBlacklisted 
+          ? 'http://localhost:8080/getBlockVehicles'
+          : 'http://localhost:8080/getVehicles'
+      );
 
-      // Ensure we're setting an array, even if the response is empty or invalid
-      setVehicles(Array.isArray(response.data) ? response.data : []);
+      setVehicles(Array.isArray(response.data.data) ? response.data.data : []);
       setError(null);
     } catch (err) {
       setError('Failed to fetch vehicles');
       console.error('Error fetching vehicles:', err);
-      setVehicles([]); // Reset to empty array on error
+      setVehicles([]);
     } finally {
       setIsLoading(false);
     }
   };
-  console.log('Vehicles:', vehicles);
+
+  // Fetch vehicles when showBlacklisted changes
+  useEffect(() => {
+    fetchVehicles();
+  }, [showBlacklisted]);
 
   const filteredVehicles = (vehicles || []).filter(vehicle => {
-    const isBlacklisted = vehicle?.status === 'blacklisted';
-    if (showBlacklisted !== isBlacklisted) return false;
-    
     if (!searchQuery) return true;
     
     return (
-      vehicle?.vehicleNo?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      vehicle?.vehicle_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       vehicle?.brand?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      vehicle?.category?.toLowerCase().includes(searchQuery.toLowerCase())
+      vehicle?.vehicle_category?.toLowerCase().includes(searchQuery.toLowerCase())
     );
   });
 
@@ -115,15 +119,15 @@ const Vehicles = () => {
                 ) : (
                   filteredVehicles.map((vehicle, index) => (
                     <tr key={vehicle.id || index} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{index + 1}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{vehicle.vehicleNo}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{vehicle.category}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{vehicle.id}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{vehicle.vehicle_number}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{vehicle.vehicle_category}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{vehicle.brand}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{vehicle.modelType}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{vehicle.fuelType}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{vehicle.vehicleOwnership}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{vehicle.registrationDate}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{vehicle.insuranceValidUpTo}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{vehicle.model_type}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{vehicle.fuel_type}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{vehicle.vehicle_ownership}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{vehicle.registration_date}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{vehicle.insurance_valid}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         <div className="flex flex-col gap-2">
                           {vehicle.insuranceCopy && (

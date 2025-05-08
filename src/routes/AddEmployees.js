@@ -3,14 +3,12 @@ import React, { useState } from 'react';
 const AddEmployees = () => {
   const [employeeData, setEmployeeData] = useState({
     name: '',
+    phone_number: '',
+    gender: '',
     email: '',
-    phone: '',
-    department: '',
-    position: '',
-    joiningDate: '',
-    profilePhoto: null,
-    idProof: null,
-    addressProof: null
+    shift_time: '',
+    pickup_location: '',
+    drop_location: ''
   });
 
   const [errors, setErrors] = useState({});
@@ -23,28 +21,12 @@ const AddEmployees = () => {
     if (!employeeData.name.trim()) newErrors.name = 'Name is required';
     if (!employeeData.email.trim()) newErrors.email = 'Email is required';
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(employeeData.email)) newErrors.email = 'Invalid email format';
-    if (!employeeData.phone.trim()) newErrors.phone = 'Phone number is required';
-    if (!/^\d{10}$/.test(employeeData.phone)) newErrors.phone = 'Phone number must be 10 digits';
-    if (!employeeData.department) newErrors.department = 'Department is required';
-    if (!employeeData.position.trim()) newErrors.position = 'Position is required';
-    if (!employeeData.joiningDate) newErrors.joiningDate = 'Joining date is required';
-
-    // Image validations
-    if (!employeeData.profilePhoto) newErrors.profilePhoto = 'Profile photo is required';
-    if (!employeeData.idProof) newErrors.idProof = 'ID proof is required';
-    if (!employeeData.addressProof) newErrors.addressProof = 'Address proof is required';
-
-    // File size validations (max 5MB)
-    const maxSize = 5 * 1024 * 1024;
-    if (employeeData.profilePhoto && employeeData.profilePhoto.size > maxSize) {
-      newErrors.profilePhoto = 'Profile photo size should be less than 5MB';
-    }
-    if (employeeData.idProof && employeeData.idProof.size > maxSize) {
-      newErrors.idProof = 'ID proof size should be less than 5MB';
-    }
-    if (employeeData.addressProof && employeeData.addressProof.size > maxSize) {
-      newErrors.addressProof = 'Address proof size should be less than 5MB';
-    }
+    if (!employeeData.phone_number.trim()) newErrors.phone_number = 'Phone number is required';
+    if (!/^\d{10}$/.test(employeeData.phone_number)) newErrors.phone_number = 'Phone number must be 10 digits';
+    if (!employeeData.gender) newErrors.gender = 'Gender is required';
+    if (!employeeData.shift_time) newErrors.shift_time = 'Shift time is required';
+    if (!employeeData.pickup_location) newErrors.pickup_location = 'Pickup location is required';
+    if (!employeeData.drop_location) newErrors.drop_location = 'Drop location is required';
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -56,15 +38,12 @@ const AddEmployees = () => {
     if (!validateForm()) return;
 
     try {
-      const formData = new FormData();
-      Object.keys(employeeData).forEach(key => {
-        formData.append(key, employeeData[key]);
-      });
-
-      // TODO: Replace with your API endpoint
       const response = await fetch('http://localhost:8080/addEmployee', {
         method: 'POST',
-        body: formData
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(employeeData)
       });
 
       if (response.ok) {
@@ -72,14 +51,12 @@ const AddEmployees = () => {
         // Reset form
         setEmployeeData({
           name: '',
+          phone_number: '',
+          gender: '',
           email: '',
-          phone: '',
-          department: '',
-          position: '',
-          joiningDate: '',
-          profilePhoto: null,
-          idProof: null,
-          addressProof: null
+          shift_time: '',
+          pickup_location: '',
+          drop_location: ''
         });
         setTimeout(() => setSuccessMessage(''), 3000);
       } else {
@@ -91,18 +68,11 @@ const AddEmployees = () => {
   };
 
   const handleChange = (e) => {
-    const { name, value, files } = e.target;
-    if (files) {
-      setEmployeeData({
-        ...employeeData,
-        [name]: files[0]
-      });
-    } else {
-      setEmployeeData({
-        ...employeeData,
-        [name]: value
-      });
-    }
+    const { name, value } = e.target;
+    setEmployeeData({
+      ...employeeData,
+      [name]: value
+    });
   };
 
   return (
@@ -136,6 +106,34 @@ const AddEmployees = () => {
           </div>
 
           <div className="form-group">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number:</label>
+            <input
+              type="tel"
+              name="phone_number"
+              value={employeeData.phone_number}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            {errors.phone_number && <p className="text-red-500 text-sm mt-1">{errors.phone_number}</p>}
+          </div>
+
+          <div className="form-group">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Gender:</label>
+            <select
+              name="gender"
+              value={employeeData.gender}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Select Gender</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="other">Other</option>
+            </select>
+            {errors.gender && <p className="text-red-500 text-sm mt-1">{errors.gender}</p>}
+          </div>
+
+          <div className="form-group">
             <label className="block text-sm font-medium text-gray-700 mb-2">Email:</label>
             <input
               type="email"
@@ -148,91 +146,40 @@ const AddEmployees = () => {
           </div>
 
           <div className="form-group">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Phone:</label>
-            <input
-              type="tel"
-              name="phone"
-              value={employeeData.phone}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
-          </div>
-
-          <div className="form-group">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Department:</label>
-            <select
-              name="department"
-              value={employeeData.department}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Select Department</option>
-              <option value="operations">Operations</option>
-              <option value="maintenance">Maintenance</option>
-              <option value="administration">Administration</option>
-            </select>
-            {errors.department && <p className="text-red-500 text-sm mt-1">{errors.department}</p>}
-          </div>
-
-          <div className="form-group">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Position:</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Shift Time:</label>
             <input
               type="text"
-              name="position"
-              value={employeeData.position}
+              name="shift_time"
+              value={employeeData.shift_time}
               onChange={handleChange}
+              placeholder="e.g. 9:00 AM - 6:00 PM"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            {errors.position && <p className="text-red-500 text-sm mt-1">{errors.position}</p>}
+            {errors.shift_time && <p className="text-red-500 text-sm mt-1">{errors.shift_time}</p>}
           </div>
 
           <div className="form-group">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Joining Date:</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Pickup Location:</label>
             <input
-              type="date"
-              name="joiningDate"
-              value={employeeData.joiningDate}
+              type="text"
+              name="pickup_location"
+              value={employeeData.pickup_location}
               onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            {errors.joiningDate && <p className="text-red-500 text-sm mt-1">{errors.joiningDate}</p>}
+            {errors.pickup_location && <p className="text-red-500 text-sm mt-1">{errors.pickup_location}</p>}
           </div>
 
           <div className="form-group">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Profile Photo:</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Drop Location:</label>
             <input
-              type="file"
-              name="profilePhoto"
-              accept="image/*"
+              type="text"
+              name="drop_location"
+              value={employeeData.drop_location}
               onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            {errors.profilePhoto && <p className="text-red-500 text-sm mt-1">{errors.profilePhoto}</p>}
-          </div>
-
-          <div className="form-group">
-            <label className="block text-sm font-medium text-gray-700 mb-2">ID Proof:</label>
-            <input
-              type="file"
-              name="idProof"
-              accept=".pdf,.jpg,.jpeg,.png"
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            {errors.idProof && <p className="text-red-500 text-sm mt-1">{errors.idProof}</p>}
-          </div>
-
-          <div className="form-group">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Address Proof:</label>
-            <input
-              type="file"
-              name="addressProof"
-              accept=".pdf,.jpg,.jpeg,.png"
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            {errors.addressProof && <p className="text-red-500 text-sm mt-1">{errors.addressProof}</p>}
+            {errors.drop_location && <p className="text-red-500 text-sm mt-1">{errors.drop_location}</p>}
           </div>
 
           <div className="col-span-2 flex justify-end mt-4">

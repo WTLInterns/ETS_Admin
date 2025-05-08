@@ -16,9 +16,9 @@ const Employees = () => {
     try {
       setIsLoading(true);
       const response = await axios.get('http://localhost:8080/getEmployees');
-      console.log('Response Data:', response.data.data[0].name);
+      console.log('Response Data:', response.data.data);
       // Ensure we're setting an array, even if the response is empty or invalid
-      setEmployees(Array.isArray(response.data) ? response.data : []);
+      setEmployees(Array.isArray(response.data.data) ? response.data.data : []);
       setError(null);
     } catch (err) {
       setError('Failed to fetch employees');
@@ -112,9 +112,9 @@ console.log('Employees:', employees);
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{employee.phone}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{employee.gender}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{employee.email}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{employee.pickupLocation}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{employee.dropLocation}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{employee.shiftTime}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{employee.pickup_location}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{employee.drop_location}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{employee.shift_time}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <button
                           onClick={() => handleDelete(employee.id)}
