@@ -77,15 +77,38 @@ const Drivers = () => {
     setIsEditModalOpen(true);
   };
 
-  const handleEditSubmit = (e) => {
+  const handleEditSubmit = async (e) => {
     e.preventDefault();
-    if (showBlocked) {
-      setBlockedDrivers(blockedDrivers.map(d => d.id === editingDriver.id ? editingDriver : d));
-    } else {
-      setActiveDrivers(activeDrivers.map(d => d.id === editingDriver.id ? editingDriver : d));
+    try {
+      setIsLoading(true);
+      const response = await axios.put(
+        `http://localhost:8080/update/driver/${editingDriver._id}`, 
+        editingDriver
+      );
+      
+      if (response.data.success) {
+        // Update the local state with the edited driver
+        if (showBlocked) {
+          setBlockedDrivers(blockedDrivers.map(d => 
+            d._id === editingDriver._id ? response.data.data : d
+          ));
+        } else {
+          setActiveDrivers(activeDrivers.map(d => 
+            d._id === editingDriver._id ? response.data.data : d
+          ));
+        }
+        setIsEditModalOpen(false);
+        setEditingDriver(null);
+        setError(null);
+      } else {
+        throw new Error(response.data.message || 'Failed to update driver');
+      }
+    } catch (err) {
+      setError('Failed to update driver: ' + (err.response?.data?.message || err.message));
+      console.error('Error updating driver:', err);
+    } finally {
+      setIsLoading(false);
     }
-    setIsEditModalOpen(false);
-    setEditingDriver(null);
   };
 
   // Block logic

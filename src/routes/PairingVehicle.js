@@ -27,8 +27,12 @@ const PairingVehicle = () => {
         axios.get('http://localhost:8080/getVehicles')
       ]);
 
-      setDrivers(driversResponse.data.data || []);
-      setVehicles(vehiclesResponse.data.data || []);
+      // Filter out already paired drivers and vehicles
+      const availableDrivers = (driversResponse.data.data || []).filter(driver => !driver.paired);
+      const availableVehicles = (vehiclesResponse.data.data || []).filter(vehicle => !vehicle.paired);
+
+      setDrivers(availableDrivers);
+      setVehicles(availableVehicles);
       setError(null);
     } catch (err) {
       setError('Failed to fetch data. Please try again.');
@@ -41,7 +45,11 @@ const PairingVehicle = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:8080/createPairing', pairingData);
+      // Changed to match backend endpoint
+      const response = await axios.post(
+        `http://localhost:8080/addPair/${pairingData.vehicleId}/${pairingData.driverId}`
+      );
+      
       if (response.data.success) {
         setSuccessMessage('Pairing created successfully!');
         setPairingData({
@@ -50,10 +58,14 @@ const PairingVehicle = () => {
           startDate: '',
           endDate: ''
         });
+        // Refresh the drivers and vehicles lists after successful pairing
+        fetchDriversAndVehicles();
         setTimeout(() => setSuccessMessage(''), 3000);
+      } else {
+        setError(response.data.message || 'Failed to create pairing.');
       }
     } catch (err) {
-      setError('Failed to create pairing. Please try again.');
+      setError(err.response?.data?.message || 'Failed to create pairing. Please try again.');
       console.error('Error creating pairing:', err);
     }
   };
@@ -104,7 +116,7 @@ const PairingVehicle = () => {
             >
               <option value="">Select Driver</option>
               {drivers.map(driver => (
-                <option key={driver.id} value={driver.id}>
+                <option key={driver._id} value={driver._id}>
                   {driver.name} - {driver.license_id_number}
                 </option>
               ))}
@@ -124,14 +136,14 @@ const PairingVehicle = () => {
             >
               <option value="">Select Vehicle</option>
               {vehicles.map(vehicle => (
-                <option key={vehicle.id} value={vehicle.id}>
+                <option key={vehicle._id} value={vehicle._id}>
                   {vehicle.vehicle_number} - {vehicle.brand} {vehicle.model_type}
                 </option>
               ))}
             </select>
           </div>
 
-          <div className="form-group">
+          {/* <div className="form-group">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Start Date:
             </label>
@@ -157,7 +169,7 @@ const PairingVehicle = () => {
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             />
-          </div>
+          </div> */}
 
           <button
             type="submit"

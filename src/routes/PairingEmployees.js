@@ -24,8 +24,9 @@ const PairingEmployees = () => {
       setLoading(true);
       const [employeesResponse, driversResponse] = await Promise.all([
         axios.get('http://localhost:8080/getEmployees'),
-        axios.get('http://localhost:8080/getDrivers')
+        axios.get('http://localhost:8080/getPairs')
       ]);
+      console.log('Employees:', driversResponse.data.data);
 
       if (employeesResponse.data.success && driversResponse.data.success) {
         // Filter out employees who already have drivers assigned
@@ -67,7 +68,7 @@ const PairingEmployees = () => {
       </div>
     );
   }
-
+  console.log('Drivers:', drivers);
   return (
     <div className="p-6">
       <div className="bg-white rounded-lg shadow-md p-6">
@@ -114,13 +115,13 @@ const PairingEmployees = () => {
               <option value="">Select Driver</option>
               {drivers.map(driver => (
                 <option key={driver._id} value={driver._id}>
-                  {driver.name} - {driver.mobile}
+                  {driver.driver?.name} - {driver.vehicle?.vehicle_category}
                 </option>
               ))}
             </select>
           </div>
 
-          <div className="form-group">
+          {/* <div className="form-group">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Start Date:
             </label>
@@ -146,9 +147,9 @@ const PairingEmployees = () => {
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             />
-          </div>
+          </div> */}
 
-          <div className="form-group">
+          {/* <div className="form-group">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Purpose:
             </label>
@@ -159,7 +160,7 @@ const PairingEmployees = () => {
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 h-32 resize-none"
               required
             />
-          </div>
+          </div> */}
 
           <button
             type="submit"

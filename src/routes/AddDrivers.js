@@ -43,7 +43,7 @@ const AddDrivers = () => {
         }
       });
 
-      // Add file fields
+      // Add file fields with error handling
       const fileFields = {
         license_front_photo: document.querySelector('input[name="licenseFrontPhoto"]').files[0],
         license_back_photo: document.querySelector('input[name="licenseBackPhoto"]').files[0],
@@ -52,12 +52,13 @@ const AddDrivers = () => {
         pcc_document: document.querySelector('input[name="pccForm"]').files[0]
       };
 
-      // Append files to FormData
-      Object.keys(fileFields).forEach(key => {
-        if (fileFields[key]) {
-          formData.append(key, fileFields[key]);
+      // Validate file uploads
+      for (const [key, file] of Object.entries(fileFields)) {
+        if (!file) {
+          throw new Error(`Please select a file for ${key.replace(/_/g, ' ')}`);
         }
-      });
+        formData.append(key, file);
+      }
 
       const response = await fetch('http://localhost:8080/addDriver', {
         method: 'POST',
@@ -67,7 +68,7 @@ const AddDrivers = () => {
 
       const data = await response.json();
 
-      if (response.ok) {
+      if (response.ok && data.success) {
         setShowSuccess(true);
         setTimeout(() => setShowSuccess(false), 3000);
         // Reset form
@@ -83,12 +84,20 @@ const AddDrivers = () => {
         document.querySelectorAll('input[type="file"]').forEach(input => {
           input.value = '';
         });
+        setErrors({}); // Clear any existing errors
       } else {
-        throw new Error(data.message || 'Failed to add driver');
+        // Handle server-side validation errors or other error messages
+        const errorMessage = data.message || 'Failed to add driver';
+        throw new Error(errorMessage);
       }
     } catch (error) {
       console.error('Error adding driver:', error);
-      setErrors({ submit: error.message || 'Failed to add driver. Please try again.' });
+      // Set a more user-friendly error message
+      setErrors({ 
+        submit: error.message || 'Failed to add driver. Please check your form data and try again.' 
+      });
+      // Scroll to the error message
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
